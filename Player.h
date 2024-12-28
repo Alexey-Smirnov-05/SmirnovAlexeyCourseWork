@@ -49,7 +49,8 @@ namespace SmirnovAlexeyCourseWork {
 	private: System::Windows::Forms::ProgressBar^ progressBar1;
 	private: System::Windows::Forms::Label^ label_track_start;
 	private: System::Windows::Forms::Label^ label_track_end;
-	private: AxWMPLib::AxWindowsMediaPlayer^ axWindowsMediaPlayer1;
+	private: AxWMPLib::AxWindowsMediaPlayer^ player_for_tracks;
+
 	private: System::Windows::Forms::Label^ label_message;
 	private: System::Windows::Forms::Button^ button_stop;
 
@@ -83,11 +84,11 @@ namespace SmirnovAlexeyCourseWork {
 			this->progressBar1 = (gcnew System::Windows::Forms::ProgressBar());
 			this->label_track_start = (gcnew System::Windows::Forms::Label());
 			this->label_track_end = (gcnew System::Windows::Forms::Label());
-			this->axWindowsMediaPlayer1 = (gcnew AxWMPLib::AxWindowsMediaPlayer());
+			this->player_for_tracks = (gcnew AxWMPLib::AxWindowsMediaPlayer());
 			this->label_message = (gcnew System::Windows::Forms::Label());
 			this->groupBox1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->axWindowsMediaPlayer1))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->player_for_tracks))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// groupBox1
@@ -146,6 +147,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->track_list->Name = L"track_list";
 			this->track_list->Size = System::Drawing::Size(480, 84);
 			this->track_list->TabIndex = 5;
+			this->track_list->SelectedIndexChanged += gcnew System::EventHandler(this, &Player::track_list_SelectedIndexChanged);
 			// 
 			// trackBar1
 			// 
@@ -246,14 +248,14 @@ namespace SmirnovAlexeyCourseWork {
 			this->label_track_end->TabIndex = 8;
 			this->label_track_end->Text = L"00:00";
 			// 
-			// axWindowsMediaPlayer1
+			// player_for_tracks
 			// 
-			this->axWindowsMediaPlayer1->Enabled = true;
-			this->axWindowsMediaPlayer1->Location = System::Drawing::Point(8, 9);
-			this->axWindowsMediaPlayer1->Name = L"axWindowsMediaPlayer1";
-			this->axWindowsMediaPlayer1->OcxState = (cli::safe_cast<System::Windows::Forms::AxHost::State^>(resources->GetObject(L"axWindowsMediaPlayer1.OcxState")));
-			this->axWindowsMediaPlayer1->Size = System::Drawing::Size(427, 241);
-			this->axWindowsMediaPlayer1->TabIndex = 9;
+			this->player_for_tracks->Enabled = true;
+			this->player_for_tracks->Location = System::Drawing::Point(8, 9);
+			this->player_for_tracks->Name = L"player_for_tracks";
+			this->player_for_tracks->OcxState = (cli::safe_cast<System::Windows::Forms::AxHost::State^>(resources->GetObject(L"player_for_tracks.OcxState")));
+			this->player_for_tracks->Size = System::Drawing::Size(427, 241);
+			this->player_for_tracks->TabIndex = 9;
 			// 
 			// label_message
 			// 
@@ -275,7 +277,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->BackColor = System::Drawing::Color::DimGray;
 			this->ClientSize = System::Drawing::Size(594, 503);
 			this->Controls->Add(this->label_message);
-			this->Controls->Add(this->axWindowsMediaPlayer1);
+			this->Controls->Add(this->player_for_tracks);
 			this->Controls->Add(this->label_track_start);
 			this->Controls->Add(this->label_track_end);
 			this->Controls->Add(this->progressBar1);
@@ -287,7 +289,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->groupBox1->ResumeLayout(false);
 			this->groupBox1->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->EndInit();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->axWindowsMediaPlayer1))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->player_for_tracks))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -304,6 +306,13 @@ namespace SmirnovAlexeyCourseWork {
 			{
 				track_list->Items->Add(files[x]);
 			}
+		}
+	}
+	private: System::Void track_list_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
+		// Проверяем, выбран ли элемент в списке
+		if (track_list->SelectedIndex != -1) {
+			player_for_tracks->URL = paths[track_list->SelectedIndex];
+			player_for_tracks->Ctlcontrols->play(); // Используем стрелочную нотацию
 		}
 	}
 };
