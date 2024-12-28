@@ -181,6 +181,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->button_next->Size = System::Drawing::Size(75, 35);
 			this->button_next->TabIndex = 3;
 			this->button_next->UseVisualStyleBackColor = true;
+			this->button_next->Click += gcnew System::EventHandler(this, &Player::button_next_Click);
 			// 
 			// button_pause
 			// 
@@ -336,6 +337,12 @@ namespace SmirnovAlexeyCourseWork {
 		if (track_list->SelectedIndex > 0)
 		{
 			track_list->SelectedIndex = track_list->SelectedIndex - 1;
+		}
+	}
+	private: System::Void button_next_Click(System::Object^ sender, System::EventArgs^ e) {
+		if (track_list->SelectedIndex < track_list->Items->Count - 1)
+		{
+			track_list->SelectedIndex = track_list->SelectedIndex + 1;
 		}
 	}
 };
