@@ -217,6 +217,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->button_previous->Size = System::Drawing::Size(75, 35);
 			this->button_previous->TabIndex = 0;
 			this->button_previous->UseVisualStyleBackColor = true;
+			this->button_previous->Click += gcnew System::EventHandler(this, &Player::button_previous_Click);
 			// 
 			// progressBar1
 			// 
@@ -330,6 +331,12 @@ namespace SmirnovAlexeyCourseWork {
 	private: System::Void button_stop_Click(System::Object^ sender, System::EventArgs^ e) {
 		player_for_tracks->Ctlcontrols->stop();
 		label_message->Text = "Stop";
+	}
+	private: System::Void button_previous_Click(System::Object^ sender, System::EventArgs^ e) {
+		if (track_list->SelectedIndex > 0)
+		{
+			track_list->SelectedIndex = track_list->SelectedIndex - 1;
+		}
 	}
 };
 }
