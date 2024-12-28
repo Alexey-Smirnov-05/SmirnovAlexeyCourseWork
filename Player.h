@@ -136,6 +136,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->button_stop->Size = System::Drawing::Size(75, 35);
 			this->button_stop->TabIndex = 6;
 			this->button_stop->UseVisualStyleBackColor = true;
+			this->button_stop->Click += gcnew System::EventHandler(this, &Player::button_stop_Click);
 			// 
 			// track_list
 			// 
@@ -325,6 +326,10 @@ namespace SmirnovAlexeyCourseWork {
 	private: System::Void button_pause_Click(System::Object^ sender, System::EventArgs^ e) {
 		player_for_tracks->Ctlcontrols->pause();
 		label_message->Text = "Pause";
+	}
+	private: System::Void button_stop_Click(System::Object^ sender, System::EventArgs^ e) {
+		player_for_tracks->Ctlcontrols->stop();
+		label_message->Text = "Stop";
 	}
 };
 }
