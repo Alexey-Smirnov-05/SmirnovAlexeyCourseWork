@@ -69,8 +69,9 @@ namespace SmirnovAlexeyCourseWork {
 			System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(Player::typeid));
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
 			this->label_volume = (gcnew System::Windows::Forms::Label());
-			this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
+			this->button_stop = (gcnew System::Windows::Forms::Button());
 			this->track_list = (gcnew System::Windows::Forms::ListBox());
+			this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
 			this->button_add = (gcnew System::Windows::Forms::Button());
 			this->button_next = (gcnew System::Windows::Forms::Button());
 			this->button_pause = (gcnew System::Windows::Forms::Button());
@@ -81,7 +82,6 @@ namespace SmirnovAlexeyCourseWork {
 			this->label_track_end = (gcnew System::Windows::Forms::Label());
 			this->axWindowsMediaPlayer1 = (gcnew AxWMPLib::AxWindowsMediaPlayer());
 			this->label_message = (gcnew System::Windows::Forms::Label());
-			this->button_stop = (gcnew System::Windows::Forms::Button());
 			this->groupBox1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->axWindowsMediaPlayer1))->BeginInit();
@@ -122,14 +122,16 @@ namespace SmirnovAlexeyCourseWork {
 			this->label_volume->TabIndex = 3;
 			this->label_volume->Text = L"0%";
 			// 
-			// trackBar1
+			// button_stop
 			// 
-			this->trackBar1->Location = System::Drawing::Point(492, 21);
-			this->trackBar1->Maximum = 100;
-			this->trackBar1->Name = L"trackBar1";
-			this->trackBar1->Orientation = System::Windows::Forms::Orientation::Vertical;
-			this->trackBar1->Size = System::Drawing::Size(56, 125);
-			this->trackBar1->TabIndex = 6;
+			this->button_stop->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10.2F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(204)));
+			this->button_stop->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"button_stop.Image")));
+			this->button_stop->Location = System::Drawing::Point(330, 21);
+			this->button_stop->Name = L"button_stop";
+			this->button_stop->Size = System::Drawing::Size(75, 35);
+			this->button_stop->TabIndex = 6;
+			this->button_stop->UseVisualStyleBackColor = true;
 			// 
 			// track_list
 			// 
@@ -141,6 +143,15 @@ namespace SmirnovAlexeyCourseWork {
 			this->track_list->Name = L"track_list";
 			this->track_list->Size = System::Drawing::Size(480, 84);
 			this->track_list->TabIndex = 5;
+			// 
+			// trackBar1
+			// 
+			this->trackBar1->Location = System::Drawing::Point(492, 21);
+			this->trackBar1->Maximum = 100;
+			this->trackBar1->Name = L"trackBar1";
+			this->trackBar1->Orientation = System::Windows::Forms::Orientation::Vertical;
+			this->trackBar1->Size = System::Drawing::Size(56, 125);
+			this->trackBar1->TabIndex = 6;
 			// 
 			// button_add
 			// 
@@ -252,17 +263,6 @@ namespace SmirnovAlexeyCourseWork {
 			this->label_message->Size = System::Drawing::Size(112, 20);
 			this->label_message->TabIndex = 2;
 			this->label_message->Text = L"MediaPlayer";
-			// 
-			// button_stop
-			// 
-			this->button_stop->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10.2F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
-				static_cast<System::Byte>(204)));
-			this->button_stop->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"button_stop.Image")));
-			this->button_stop->Location = System::Drawing::Point(330, 21);
-			this->button_stop->Name = L"button_stop";
-			this->button_stop->Size = System::Drawing::Size(75, 35);
-			this->button_stop->TabIndex = 6;
-			this->button_stop->UseVisualStyleBackColor = true;
 			// 
 			// Player
 			// 
