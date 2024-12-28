@@ -53,15 +53,17 @@ namespace SmirnovAlexeyCourseWork {
 
 	private: System::Windows::Forms::Label^ label_message;
 	private: System::Windows::Forms::Button^ button_stop;
+	private: System::ComponentModel::IContainer^ components;
 
 	private:
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
-		System::ComponentModel::Container ^components;
+
 		// Изменяем типы на управляемые массивы
 		array<String^>^ paths;
-		array<String^>^ files;
+	private: System::Windows::Forms::Timer^ timer1;
+		   array<String^>^ files;
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -70,6 +72,7 @@ namespace SmirnovAlexeyCourseWork {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+			this->components = (gcnew System::ComponentModel::Container());
 			System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(Player::typeid));
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
 			this->label_volume = (gcnew System::Windows::Forms::Label());
@@ -86,6 +89,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->label_track_end = (gcnew System::Windows::Forms::Label());
 			this->player_for_tracks = (gcnew AxWMPLib::AxWindowsMediaPlayer());
 			this->label_message = (gcnew System::Windows::Forms::Label());
+			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->groupBox1->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->player_for_tracks))->BeginInit();
@@ -275,6 +279,10 @@ namespace SmirnovAlexeyCourseWork {
 			this->label_message->TabIndex = 2;
 			this->label_message->Text = L"MediaPlayer";
 			// 
+			// timer1
+			// 
+			this->timer1->Tick += gcnew System::EventHandler(this, &Player::timer1_Tick);
+			// 
 			// Player
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
@@ -319,6 +327,7 @@ namespace SmirnovAlexeyCourseWork {
 			player_for_tracks->URL = paths[track_list->SelectedIndex];
 			player_for_tracks->Ctlcontrols->play();
 			label_message->Text = "Playing...";
+			timer1->Start();
 		}
 	}
 	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -344,6 +353,14 @@ namespace SmirnovAlexeyCourseWork {
 		{
 			track_list->SelectedIndex = track_list->SelectedIndex + 1;
 		}
+	}
+	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
+		if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsPlaying) {
+			progressBar1->Maximum = (int)player_for_tracks->Ctlcontrols->currentItem->duration;
+			progressBar1->Value = (int)player_for_tracks->Ctlcontrols->currentPosition;
+		}
+		label_track_start->Text = player_for_tracks->Ctlcontrols->currentPositionString;
+		label_track_end->Text = player_for_tracks->Ctlcontrols->currentItem->durationString->ToString();
 	}
 };
 }
