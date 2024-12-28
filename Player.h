@@ -203,6 +203,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->button_play->Size = System::Drawing::Size(75, 35);
 			this->button_play->TabIndex = 1;
 			this->button_play->UseVisualStyleBackColor = true;
+			this->button_play->Click += gcnew System::EventHandler(this, &Player::button_play_Click);
 			// 
 			// button_previous
 			// 
@@ -313,7 +314,12 @@ namespace SmirnovAlexeyCourseWork {
 		if (track_list->SelectedIndex != -1) {
 			player_for_tracks->URL = paths[track_list->SelectedIndex];
 			player_for_tracks->Ctlcontrols->play(); // Используем стрелочную нотацию
+			label_message->Text = "Playing...";
 		}
+	}
+	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
+		player_for_tracks->Ctlcontrols->play(); // Используем стрелочную нотацию
+		label_message->Text = "Playing...";
 	}
 };
 }
