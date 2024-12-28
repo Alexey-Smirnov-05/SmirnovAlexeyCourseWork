@@ -58,6 +58,9 @@ namespace SmirnovAlexeyCourseWork {
 		/// Обязательная переменная конструктора.
 		/// </summary>
 		System::ComponentModel::Container ^components;
+		// Изменяем типы на управляемые массивы
+		array<String^>^ paths;
+		array<String^>^ files;
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -163,6 +166,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->button_add->Size = System::Drawing::Size(75, 35);
 			this->button_add->TabIndex = 4;
 			this->button_add->UseVisualStyleBackColor = true;
+			this->button_add->Click += gcnew System::EventHandler(this, &Player::button_add_Click);
 			// 
 			// button_next
 			// 
@@ -289,5 +293,18 @@ namespace SmirnovAlexeyCourseWork {
 
 		}
 #pragma endregion
-	};
+	private: System::Void button_add_Click(System::Object^ sender, System::EventArgs^ e) {
+		OpenFileDialog^ ofd = gcnew OpenFileDialog();
+		ofd->Multiselect = true;
+		if (ofd->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+		{
+			files = ofd->SafeFileNames;
+			paths = ofd->FileNames;
+			for (int x = 0; x < files->Length; x++)
+			{
+				track_list->Items->Add(files[x]);
+			}
+		}
+	}
+};
 }
