@@ -192,6 +192,7 @@ namespace SmirnovAlexeyCourseWork {
 			this->button_pause->Size = System::Drawing::Size(75, 35);
 			this->button_pause->TabIndex = 2;
 			this->button_pause->UseVisualStyleBackColor = true;
+			this->button_pause->Click += gcnew System::EventHandler(this, &Player::button_pause_Click);
 			// 
 			// button_play
 			// 
@@ -313,13 +314,17 @@ namespace SmirnovAlexeyCourseWork {
 		// Проверяем, выбран ли элемент в списке
 		if (track_list->SelectedIndex != -1) {
 			player_for_tracks->URL = paths[track_list->SelectedIndex];
-			player_for_tracks->Ctlcontrols->play(); // Используем стрелочную нотацию
+			player_for_tracks->Ctlcontrols->play();
 			label_message->Text = "Playing...";
 		}
 	}
 	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
-		player_for_tracks->Ctlcontrols->play(); // Используем стрелочную нотацию
+		player_for_tracks->Ctlcontrols->play();
 		label_message->Text = "Playing...";
+	}
+	private: System::Void button_pause_Click(System::Object^ sender, System::EventArgs^ e) {
+		player_for_tracks->Ctlcontrols->pause();
+		label_message->Text = "Pause";
 	}
 };
 }
