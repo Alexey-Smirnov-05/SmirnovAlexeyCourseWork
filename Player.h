@@ -18,6 +18,7 @@ namespace SmirnovAlexeyCourseWork {
 		Player(void)
 		{
 			InitializeComponent();
+			currentVolume = 50;
 			//
 			//TODO: добавьте код конструктора
 			//
@@ -61,6 +62,8 @@ namespace SmirnovAlexeyCourseWork {
 		/// </summary>
 
 		// Изменяем типы на управляемые массивы
+	private:
+		int currentVolume; // Переменная для хранения текущего уровня громкости
 		array<String^>^ paths;
 	private: System::Windows::Forms::Timer^ timer1;
 		   array<String^>^ files;
@@ -120,13 +123,13 @@ namespace SmirnovAlexeyCourseWork {
 			// label_volume
 			// 
 			this->label_volume->AutoSize = true;
-			this->label_volume->BackColor = System::Drawing::Color::Black;
-			this->label_volume->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10.2F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+			this->label_volume->BackColor = System::Drawing::Color::Transparent;
+			this->label_volume->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 7.8F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
 			this->label_volume->ForeColor = System::Drawing::Color::White;
-			this->label_volume->Location = System::Drawing::Point(528, 74);
+			this->label_volume->Location = System::Drawing::Point(523, 79);
 			this->label_volume->Name = L"label_volume";
-			this->label_volume->Size = System::Drawing::Size(35, 20);
+			this->label_volume->Size = System::Drawing::Size(30, 17);
 			this->label_volume->TabIndex = 3;
 			this->label_volume->Text = L"0%";
 			// 
@@ -150,18 +153,19 @@ namespace SmirnovAlexeyCourseWork {
 			this->track_list->ItemHeight = 20;
 			this->track_list->Location = System::Drawing::Point(6, 62);
 			this->track_list->Name = L"track_list";
-			this->track_list->Size = System::Drawing::Size(480, 84);
+			this->track_list->Size = System::Drawing::Size(480, 124);
 			this->track_list->TabIndex = 5;
 			this->track_list->SelectedIndexChanged += gcnew System::EventHandler(this, &Player::track_list_SelectedIndexChanged);
 			// 
 			// trackBar1
 			// 
-			this->trackBar1->Location = System::Drawing::Point(492, 21);
+			this->trackBar1->Location = System::Drawing::Point(489, 26);
 			this->trackBar1->Maximum = 100;
 			this->trackBar1->Name = L"trackBar1";
 			this->trackBar1->Orientation = System::Windows::Forms::Orientation::Vertical;
 			this->trackBar1->Size = System::Drawing::Size(56, 125);
 			this->trackBar1->TabIndex = 6;
+			this->trackBar1->Scroll += gcnew System::EventHandler(this, &Player::trackBar1_Scroll);
 			// 
 			// button_add
 			// 
@@ -287,7 +291,7 @@ namespace SmirnovAlexeyCourseWork {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->BackColor = System::Drawing::Color::DimGray;
+			this->BackColor = System::Drawing::Color::Black;
 			this->ClientSize = System::Drawing::Size(594, 503);
 			this->Controls->Add(this->label_message);
 			this->Controls->Add(this->player_for_tracks);
@@ -321,39 +325,50 @@ namespace SmirnovAlexeyCourseWork {
 			}
 		}
 	}
+
 	private: System::Void track_list_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
-		// Проверяем, выбран ли элемент в списке
 		if (track_list->SelectedIndex != -1) {
 			player_for_tracks->URL = paths[track_list->SelectedIndex];
 			player_for_tracks->Ctlcontrols->play();
 			label_message->Text = "Playing...";
 			timer1->Start();
+
+			// Устанавливаем громкость на текущее значение
+			player_for_tracks->settings->volume = currentVolume;
+			trackBar1->Value = currentVolume; // Обновляем трекбар
+			label_volume->Text = currentVolume.ToString() + "%"; // Обновляем текст метки громкости
 		}
 	}
+
 	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
 		player_for_tracks->Ctlcontrols->play();
 		label_message->Text = "Playing...";
 	}
+
 	private: System::Void button_pause_Click(System::Object^ sender, System::EventArgs^ e) {
 		player_for_tracks->Ctlcontrols->pause();
 		label_message->Text = "Pause";
 	}
+
 	private: System::Void button_stop_Click(System::Object^ sender, System::EventArgs^ e) {
 		player_for_tracks->Ctlcontrols->stop();
 		label_message->Text = "Stop";
 	}
+
 	private: System::Void button_previous_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (track_list->SelectedIndex > 0)
 		{
 			track_list->SelectedIndex = track_list->SelectedIndex - 1;
 		}
 	}
+
 	private: System::Void button_next_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (track_list->SelectedIndex < track_list->Items->Count - 1)
 		{
 			track_list->SelectedIndex = track_list->SelectedIndex + 1;
 		}
 	}
+
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
 		if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsPlaying) {
 			progressBar1->Maximum = (int)player_for_tracks->Ctlcontrols->currentItem->duration;
@@ -361,6 +376,12 @@ namespace SmirnovAlexeyCourseWork {
 		}
 		label_track_start->Text = player_for_tracks->Ctlcontrols->currentPositionString;
 		label_track_end->Text = player_for_tracks->Ctlcontrols->currentItem->durationString->ToString();
+	}
+
+	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e) {
+		currentVolume = trackBar1->Value; // Сохраняем текущее значение громкости
+		player_for_tracks->settings->volume = currentVolume; // Устанавливаем громкость
+		label_volume->Text = currentVolume.ToString() + "%"; // Обновляем текст метки громкости
 	}
 };
 }
