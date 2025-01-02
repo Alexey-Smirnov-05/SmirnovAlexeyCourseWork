@@ -8,7 +8,8 @@ namespace SmirnovAlexeyCourseWork {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
-	using namespace System::Collections::Generic; // Не забудьте добавить это пространство имен
+	using namespace System::Collections::Generic;
+	using namespace System::IO;
 
 	/// <summary>
 	/// Сводка для Player
@@ -21,6 +22,7 @@ namespace SmirnovAlexeyCourseWork {
 			InitializeComponent();
 			currentVolume = 50; // Устанавливаем начальное значение громкости
 			paths = gcnew List<String^>(); // Инициализируем список путей
+			LoadPlaylist(); // Загружаем плейлист при запуске
 		}
 
 	protected:
@@ -301,6 +303,26 @@ namespace SmirnovAlexeyCourseWork {
 		   }
 #pragma endregion
 
+	private: void SavePlaylist() {
+		StreamWriter^ writer = gcnew StreamWriter("playlist.txt");
+		for each (String ^ path in paths) {
+			writer->WriteLine(path);
+		}
+		writer->Close();
+	}
+
+	private: void LoadPlaylist() {
+		if (File::Exists("playlist.txt")) {
+			StreamReader^ reader = gcnew StreamReader("playlist.txt");
+			String^ line;
+			while ((line = reader->ReadLine()) != nullptr) {
+				track_list->Items->Add(Path::GetFileName(line)); // Добавляем имя файла в список
+				paths->Add(line); // Сохраняем полный путь
+			}
+			reader->Close();
+		}
+	}
+
 	private: System::Void button_add_Click(System::Object^ sender, System::EventArgs^ e) {
 		OpenFileDialog^ ofd = gcnew OpenFileDialog();
 		ofd->Multiselect = true;
@@ -313,6 +335,7 @@ namespace SmirnovAlexeyCourseWork {
 				track_list->Items->Add(files[x]);
 				paths->Add(newPaths[x]); // Добавляем новые пути в список
 			}
+			SavePlaylist(); // Сохраняем плейлист после добавления треков
 		}
 	}
 
