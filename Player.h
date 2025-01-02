@@ -217,11 +217,12 @@ namespace SmirnovAlexeyCourseWork {
 			   this->button_previous->Click += gcnew System::EventHandler(this, &Player::button_previous_Click);
 			   // 
 			   // progressBar1
-			   // ```cpp
+			   // 
 			   this->progressBar1->Location = System::Drawing::Point(83, 314);
 			   this->progressBar1->Name = L"progressBar1";
 			   this->progressBar1->Size = System::Drawing::Size(426, 13);
 			   this->progressBar1->TabIndex = 3;
+			   this->progressBar1->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &Player::progressBar1_MouseClick);
 			   // 
 			   // label_track_start
 			   // 
@@ -341,7 +342,10 @@ namespace SmirnovAlexeyCourseWork {
 
 	private: System::Void button_stop_Click(System::Object^ sender, System::EventArgs^ e) {
 		player_for_tracks->Ctlcontrols->stop();
-		label_message->Text = "Stop";
+		player_for_tracks->Ctlcontrols->currentPosition = 0; // Сбрасываем позицию
+		progressBar1->Value = 0; // Обновляем progressBar
+		label_track_start->Text = "00:00"; // Сбрасываем метку времени
+		label_message->Text = "Stop"; // Обновляем сообщение
 	}
 
 	private: System::Void button_previous_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -359,18 +363,36 @@ namespace SmirnovAlexeyCourseWork {
 	}
 
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
-		if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsPlaying) {
-			progressBar1->Maximum = (int)player_for_tracks->Ctlcontrols->currentItem->duration;
-			progressBar1->Value = (int)player_for_tracks->Ctlcontrols->currentPosition;
+		if (player_for_tracks->currentMedia != nullptr) {
+			if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsPlaying) {
+				progressBar1->Maximum = (int)player_for_tracks->Ctlcontrols->currentItem->duration;
+				progressBar1->Value = (int)player_for_tracks->Ctlcontrols->currentPosition;
+				label_track_start->Text = player_for_tracks->Ctlcontrols->currentPositionString;
+				label_track_end->Text = player_for_tracks->Ctlcontrols->currentItem->durationString->ToString();
+			}
+			else if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsStopped) {
+				label_track_start->Text = "00:00"; // Сбрасываем метку времени
+			}
 		}
-		label_track_start->Text = player_for_tracks->Ctlcontrols->currentPositionString;
-		label_track_end->Text = player_for_tracks->Ctlcontrols->currentItem->durationString->ToString();
 	}
 
 	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e) {
 		currentVolume = trackBar1->Value; // Сохраняем текущее значение громкости
 		player_for_tracks->settings->volume = currentVolume; // Устанавливаем громкость
 		label_volume->Text = currentVolume.ToString() + "%"; // Обновляем текст метки громкости
+	}
+
+	private: System::Void progressBar1_MouseClick(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {
+		if (player_for_tracks->currentMedia != nullptr) {
+			// Получаем ширину прогресс-бара
+			int progressBarWidth = progressBar1->Width;
+			// Вычисляем, на какую позицию в треке хочет перемотать пользователь
+			double newPosition = (double)e->X / progressBarWidth * player_for_tracks->currentMedia->duration;
+			// Устанавливаем позицию воспроизведения
+			player_for_tracks->Ctlcontrols->currentPosition = newPosition;
+			// Обновляем отображение на progressBar1
+			progressBar1->Value = (int)(newPosition / player_for_tracks->currentMedia->duration * progressBar1->Maximum);
+		}
 	}
 	};
 }
