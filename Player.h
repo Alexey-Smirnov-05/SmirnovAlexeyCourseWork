@@ -23,6 +23,7 @@ namespace SmirnovAlexeyCourseWork {
 			currentVolume = 50; // Устанавливаем начальное значение громкости
 			paths = gcnew List<String^>(); // Инициализируем список путей
 			LoadPlaylist(); // Загружаем плейлист при запуске
+			InitializeToolTips(); // Инициализируем подсказки
 		}
 
 	protected:
@@ -45,16 +46,15 @@ namespace SmirnovAlexeyCourseWork {
 	private: System::Windows::Forms::Button^ button_previous;
 	private: System::Windows::Forms::TrackBar^ trackBar1;
 	private: System::Windows::Forms::ListBox^ track_list;
-
 	private: System::Windows::Forms::Label^ label_volume;
 	private: System::Windows::Forms::ProgressBar^ progressBar1;
 	private: System::Windows::Forms::Label^ label_track_start;
 	private: System::Windows::Forms::Label^ label_track_end;
 	private: AxWMPLib::AxWindowsMediaPlayer^ player_for_tracks;
-
 	private: System::Windows::Forms::Label^ label_message;
 	private: System::Windows::Forms::Button^ button_stop;
 	private: System::ComponentModel::IContainer^ components;
+	private: System::Windows::Forms::ToolTip^ toolTip; // Объявляем ToolTip
 
 	private:
 		int currentVolume; // Переменная для хранения текущего уровня громкости
@@ -62,7 +62,25 @@ namespace SmirnovAlexeyCourseWork {
 	private: System::Windows::Forms::Timer^ timer1;
 		   array<String^>^ files;
 
-#pragma region Windows Form Designer generated code
+	private: void InitializeToolTips() {
+		toolTip = gcnew System::Windows::Forms::ToolTip();
+
+		toolTip->AutoPopDelay = 5000; // Подсказка будет видна 5 секунд
+		toolTip->InitialDelay = 2000; // Подсказка появится через 2 секунды
+
+		// Устанавливаем подсказки для кнопок
+		toolTip->SetToolTip(this->button_play, "Воспроизвести");
+		toolTip->SetToolTip(this->button_pause, "Пауза");
+		toolTip->SetToolTip(this->button_stop, "Стоп");
+		toolTip->SetToolTip(this->button_next, "Следующий трек");
+		toolTip->SetToolTip(this->button_previous, "Предыдущий трек");
+		toolTip->SetToolTip(this->button_add, "Добавить трек");
+		toolTip->SetToolTip(this->trackBar1, "Изменить громкость");
+		toolTip->SetToolTip(this->track_list, "Выберите трек для воспроизведения \nДля удаления трека выберите и нажмите на клавишу Delete");
+		toolTip->SetToolTip(this->progressBar1, "Выберите место воспроизведения трека");
+	}
+
+#pragma region 
 		   void InitializeComponent(void)
 		   {
 			   this->components = (gcnew System::ComponentModel::Container());
@@ -93,7 +111,7 @@ namespace SmirnovAlexeyCourseWork {
 			   this->groupBox1->BackColor = System::Drawing::Color::Black;
 			   this->groupBox1->Controls->Add(this->label_volume);
 			   this->groupBox1->Controls->Add(this->button_stop);
-				   this->groupBox1->Controls->Add(this->track_list);
+			   this->groupBox1->Controls->Add(this->track_list);
 			   this->groupBox1->Controls->Add(this->trackBar1);
 			   this->groupBox1->Controls->Add(this->button_add);
 			   this->groupBox1->Controls->Add(this->button_next);
@@ -146,6 +164,7 @@ namespace SmirnovAlexeyCourseWork {
 			   this->track_list->Size = System::Drawing::Size(480, 124);
 			   this->track_list->TabIndex = 5;
 			   this->track_list->SelectedIndexChanged += gcnew System::EventHandler(this, &Player::track_list_SelectedIndexChanged);
+			   this->track_list->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &Player::track_list_KeyDown);
 			   // 
 			   // trackBar1
 			   // 
@@ -264,7 +283,7 @@ namespace SmirnovAlexeyCourseWork {
 			   // label_message
 			   // 
 			   this->label_message->AutoSize = true;
-			   this->label_message->BackColor = System::Drawing::Color::Black;
+			   this->label_message->BackColor = System::Drawing::Color::Transparent;
 			   this->label_message->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10.2F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				   static_cast<System::Byte>(204)));
 			   this->label_message->ForeColor = System::Drawing::Color::White;
@@ -300,6 +319,7 @@ namespace SmirnovAlexeyCourseWork {
 			   (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->player_for_tracks))->EndInit();
 			   this->ResumeLayout(false);
 			   this->PerformLayout();
+
 		   }
 #pragma endregion
 
@@ -341,22 +361,38 @@ namespace SmirnovAlexeyCourseWork {
 
 	private: System::Void track_list_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
 		if (track_list->SelectedIndex != -1) {
-			player_for_tracks->URL = paths[track_list->SelectedIndex]; // Используем List
-			player_for_tracks->Ctlcontrols->play();
-			label_message->Text = "Playing...";
-			timer1->Start();
+			// Проверяем, существует ли выбранный трек
+			if (track_list->SelectedIndex < paths->Count) {
+				player_for_tracks->URL = paths[track_list->SelectedIndex]; // Используем List
+				player_for_tracks->Ctlcontrols->play();
+				label_message->Text = "Playing...";
+				timer1->Start();
 
-			// Устанавливаем громкость на текущее значение
-			player_for_tracks->settings->volume = currentVolume;
-			trackBar1->Value = currentVolume; // Обновляем трекбар
-			label_volume->Text = currentVolume.ToString() + "%"; // Обновляем текст метки громкости
+				// Устанавливаем громкость на текущее значение
+				player_for_tracks->settings->volume = currentVolume;
+				trackBar1->Value = currentVolume; // Обновляем трекбар
+				label_volume->Text = currentVolume.ToString() + "%"; // Обновляем текст метки громкости
+			}
+			else {
+				// Если трек был удален, сбрасываем состояние
+				player_for_tracks->Ctlcontrols->stop();
+				label_message->Text = "Select a valid track.";
+			}
 		}
 	}
 
 	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
-		player_for_tracks->Ctlcontrols->play();
-		label_message->Text = "Playing...";
-	}
+    // Проверяем, существует ли выбранный трек
+    if (track_list->SelectedIndex != -1 && track_list->SelectedIndex < paths->Count) {
+        player_for_tracks->URL = paths[track_list->SelectedIndex]; // Устанавливаем URL
+        player_for_tracks->Ctlcontrols->play(); // Воспроизводим трек
+        label_message->Text = "Playing...";
+    } else {
+        // Если трек был удален, сбрасываем состояние плеера
+        player_for_tracks->Ctlcontrols->stop();
+        label_message->Text = "Stop";
+    }
+}
 
 	private: System::Void button_pause_Click(System::Object^ sender, System::EventArgs^ e) {
 		player_for_tracks->Ctlcontrols->pause();
@@ -388,8 +424,18 @@ namespace SmirnovAlexeyCourseWork {
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
 		if (player_for_tracks->currentMedia != nullptr) {
 			if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsPlaying) {
-				progressBar1->Maximum = (int)player_for_tracks->Ctlcontrols->currentItem->duration;
-				progressBar1->Value = (int)player_for_tracks->Ctlcontrols->currentPosition;
+				int duration = (int)player_for_tracks->Ctlcontrols->currentItem->duration;
+				int currentPosition = (int)player_for_tracks->Ctlcontrols->currentPosition;
+
+				// Устанавливаем максимальное значение для progressBar
+				progressBar1->Maximum = duration;
+
+				// Устанавливаем значение для progressBar, проверяя, что оно в допустимом диапазоне
+				if (currentPosition >= 0 && currentPosition <= duration) {
+					progressBar1->Value = currentPosition;
+				}
+
+				// Обновляем метки времени
 				label_track_start->Text = player_for_tracks->Ctlcontrols->currentPositionString;
 				label_track_end->Text = player_for_tracks->Ctlcontrols->currentItem->durationString->ToString();
 			}
@@ -397,7 +443,7 @@ namespace SmirnovAlexeyCourseWork {
 				label_track_start->Text = "00:00"; // Сбрасываем метку времени
 			}
 		}
-	}
+	} 
 
 	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e) {
 		currentVolume = trackBar1->Value; // Сохраняем текущее значение громкости
@@ -415,6 +461,23 @@ namespace SmirnovAlexeyCourseWork {
 			player_for_tracks->Ctlcontrols->currentPosition = newPosition;
 			// Обновляем отображение на progressBar1
 			progressBar1->Value = (int)(newPosition / player_for_tracks->currentMedia->duration * progressBar1->Maximum);
+		}
+	}
+
+	private: System::Void track_list_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e) {
+		if (e->KeyCode == System::Windows::Forms::Keys::Delete) {
+			int selectedIndex = track_list->SelectedIndex;
+			if (selectedIndex != -1) {
+				// Останавливаем воспроизведение, если трек удаляется
+				if (player_for_tracks->URL == paths[selectedIndex]) {
+					player_for_tracks->Ctlcontrols->stop(); // Останавливаем воспроизведение
+					label_message->Text = "Stop"; // Обновляем сообщение
+				}
+				// Удаляем трек из списка
+				track_list->Items->RemoveAt(selectedIndex);
+				paths->RemoveAt(selectedIndex); // Удаляем путь из списка
+				SavePlaylist(); // Обновляем файл плейлиста
+			}
 		}
 	}
 	};
