@@ -1,4 +1,17 @@
 #pragma once
+#include "Stop.h"
+#include "Add.h"
+#include "Play.h"
+#include "Pause.h"
+#include "Previous.h"
+#include "Next.h"
+#include "TimerManager.h"
+#include "VolumeManager.h"
+#include "ProgressManager.h"
+#include "PlaylistManager.h"
+#include "SavePlaylistManager.h"
+#include "LoadPlaylistManager.h"
+#include "IndexManager.h"
 
 namespace SmirnovAlexeyCourseWork {
 
@@ -22,8 +35,32 @@ namespace SmirnovAlexeyCourseWork {
 			InitializeComponent();
 			currentVolume = 50; // Устанавливаем начальное значение громкости
 			paths = gcnew List<String^>(); // Инициализируем список путей
-			LoadPlaylist(); // Загружаем плейлист при запуске
+
+			savePlaylistManager = gcnew SavePlaylistManager(paths);
+			loadPlaylistManager = gcnew LoadPlaylistManager(track_list, paths);
+			loadPlaylistManager->Execute();  // Загрузка плейлиста при запуске
+
 			InitializeToolTips(); // Инициализируем подсказки
+
+
+			stopHandler = gcnew Stop(player_for_tracks, progressBar1, label_track_start, label_message);
+			playHandler = gcnew Play(player_for_tracks, track_list, paths, label_message);
+			pauseHandler = gcnew Pause(player_for_tracks, label_message);
+			previousHandler = gcnew Previous(track_list);
+			nextHandler = gcnew Next(track_list);
+			volumeManager = gcnew VolumeManager(player_for_tracks, trackBar1, label_volume);
+			timerManager = gcnew TimerManager(player_for_tracks, progressBar1, label_track_start, label_track_end);
+			progressManager = gcnew ProgressManager(player_for_tracks, progressBar1, label_track_start);
+			addHandler = gcnew Add(track_list, paths, savePlaylistManager);
+			playlistManager = gcnew PlaylistManager(track_list, paths, label_message, player_for_tracks, savePlaylistManager);
+
+			indexManager = gcnew IndexManager(player_for_tracks, track_list, paths, label_message, timer1, trackBar1, label_volume);
+
+			trackBar1->Scroll += gcnew System::EventHandler(this, &Player::trackBar1_Scroll);
+			timer1->Tick += gcnew System::EventHandler(this, &Player::timer1_Tick);
+			progressBar1->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &Player::progressBar1_MouseClick);
+			track_list->SelectedIndexChanged += gcnew System::EventHandler(this, &Player::track_list_SelectedIndexChanged);
+			track_list->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &Player::track_list_KeyDown);
 		}
 
 	protected:
@@ -59,6 +96,21 @@ namespace SmirnovAlexeyCourseWork {
 	private:
 		int currentVolume; // Переменная для хранения текущего уровня громкости
 		List<String^>^ paths; // Используем List вместо массива
+
+		Stop^ stopHandler;
+		Play^ playHandler;
+		Pause^ pauseHandler;
+		Previous^ previousHandler;
+		Next^ nextHandler;
+		VolumeManager^ volumeManager;
+		TimerManager^ timerManager;
+		ProgressManager^ progressManager;
+		IndexManager^ indexManager;
+		Add^ addHandler;
+		PlaylistManager^ playlistManager;
+		SavePlaylistManager^ savePlaylistManager;
+		LoadPlaylistManager^ loadPlaylistManager;
+
 	private: System::Windows::Forms::Timer^ timer1;
 		   array<String^>^ files;
 
@@ -323,186 +375,48 @@ namespace SmirnovAlexeyCourseWork {
 		   }
 #pragma endregion
 
-	private: void SavePlaylist() {
-		StreamWriter^ writer = gcnew StreamWriter("playlist.txt");
-		for each (String ^ path in paths) {
-			writer->WriteLine(path);
-		}
-		writer->Close();
-	}
-
-	private: void LoadPlaylist() {
-		if (File::Exists("playlist.txt")) {
-			StreamReader^ reader = gcnew StreamReader("playlist.txt");
-			String^ line;
-			while ((line = reader->ReadLine()) != nullptr) {
-				track_list->Items->Add(Path::GetFileName(line)); // Добавляем имя файла в список
-				paths->Add(line); // Сохраняем полный путь
-			}
-			reader->Close();
-		}
-	}
-
 	private: System::Void button_add_Click(System::Object^ sender, System::EventArgs^ e) {
-		OpenFileDialog^ ofd = gcnew OpenFileDialog();
-		ofd->Multiselect = true;
-		if (ofd->ShowDialog() == System::Windows::Forms::DialogResult::OK)
-		{
-			array<String^>^ files = ofd->SafeFileNames; // Локальная переменная для файлов
-			array<String^>^ newPaths = ofd->FileNames; // Локальная переменная для путей
-
-			List<String^>^ invalidFiles = gcnew List<String^>(); // Список для неподходящих файлов
-
-			for (int x = 0; x < files->Length; x++)
-			{
-				// Проверяем расширение файла
-				String^ extension = Path::GetExtension(newPaths[x]);
-				if (extension == ".mp3" || extension == ".wma" || extension == ".wav" ||
-					extension == ".m4a" || extension == ".aac" ||
-					extension == ".mp4" || extension == ".wmv" ||
-					extension == ".avi" || extension == ".mov") {
-					track_list->Items->Add(files[x]);
-					paths->Add(newPaths[x]); // Добавляем новые пути в список
-				}
-				else {
-					invalidFiles->Add(files[x]); // Добавляем неподходящий файл в список
-				}
-			}
-
-			// Сохраняем плейлист после добавления треков
-			SavePlaylist();
-
-			// Если есть неподходящие файлы, выводим сообщение
-			if (invalidFiles->Count > 0) {
-				String^ message = "Следующие файлы были отклонены из-за неподходящего расширения:\n";
-				for each (String ^ invalidFile in invalidFiles) {
-					message += invalidFile + "\n";
-				}
-				MessageBox::Show(message, "Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Warning);
-			}
-		}
+		addHandler->Execute();
 	}
 
 	private: System::Void track_list_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
-		if (track_list->SelectedIndex != -1) {
-			// Проверяем, существует ли выбранный трек
-			if (track_list->SelectedIndex < paths->Count) {
-				player_for_tracks->URL = paths[track_list->SelectedIndex]; // Используем List
-				player_for_tracks->Ctlcontrols->play();
-				label_message->Text = "Playing...";
-				timer1->Start();
-
-				// Устанавливаем громкость на текущее значение
-				player_for_tracks->settings->volume = currentVolume;
-				trackBar1->Value = currentVolume; // Обновляем трекбар
-				label_volume->Text = currentVolume.ToString() + "%"; // Обновляем текст метки громкости
-			}
-			else {
-				// Если трек был удален, сбрасываем состояние
-				player_for_tracks->Ctlcontrols->stop();
-				label_message->Text = "Select a valid track.";
-			}
-		}
+		indexManager->Execute(volumeManager->GetCurrentVolume());  // Передаем сохраненную громкость
+	}
+	
+	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
+		playHandler->Execute();
 	}
 
-	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
-    // Проверяем, существует ли выбранный трек
-    if (track_list->SelectedIndex != -1 && track_list->SelectedIndex < paths->Count) {
-        player_for_tracks->URL = paths[track_list->SelectedIndex]; // Устанавливаем URL
-        player_for_tracks->Ctlcontrols->play(); // Воспроизводим трек
-        label_message->Text = "Playing...";
-    } else {
-        // Если трек был удален, сбрасываем состояние плеера
-        player_for_tracks->Ctlcontrols->stop();
-        label_message->Text = "Stop";
-    }
-}
-
 	private: System::Void button_pause_Click(System::Object^ sender, System::EventArgs^ e) {
-		player_for_tracks->Ctlcontrols->pause();
-		label_message->Text = "Pause";
+		pauseHandler->Execute();
 	}
 
 	private: System::Void button_stop_Click(System::Object^ sender, System::EventArgs^ e) {
-		player_for_tracks->Ctlcontrols->stop();
-		player_for_tracks->Ctlcontrols->currentPosition = 0; // Сбрасываем позицию
-		progressBar1->Value = 0; // Обновляем progressBar
-		label_track_start->Text = "00:00"; // Сбрасываем метку времени
-		label_message->Text = "Stop"; // Обновляем сообщение
+		stopHandler->Execute();
 	}
 
 	private: System::Void button_previous_Click(System::Object^ sender, System::EventArgs^ e) {
-		if (track_list->SelectedIndex > 0)
-		{
-			track_list->SelectedIndex = track_list->SelectedIndex - 1;
-		}
+		previousHandler->Execute();
 	}
 
 	private: System::Void button_next_Click(System::Object^ sender, System::EventArgs^ e) {
-		if (track_list->SelectedIndex < track_list->Items->Count - 1)
-		{
-			track_list->SelectedIndex = track_list->SelectedIndex + 1;
-		}
+		nextHandler->Execute();
 	}
 
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
-		if (player_for_tracks->currentMedia != nullptr) {
-			if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsPlaying) {
-				int duration = (int)player_for_tracks->Ctlcontrols->currentItem->duration;
-				int currentPosition = (int)player_for_tracks->Ctlcontrols->currentPosition;
-
-				// Устанавливаем максимальное значение для progressBar
-				progressBar1->Maximum = duration;
-
-				// Устанавливаем значение для progressBar, проверяя, что оно в допустимом диапазоне
-				if (currentPosition >= 0 && currentPosition <= duration) {
-					progressBar1->Value = currentPosition;
-				}
-
-				// Обновляем метки времени
-				label_track_start->Text = player_for_tracks->Ctlcontrols->currentPositionString;
-				label_track_end->Text = player_for_tracks->Ctlcontrols->currentItem->durationString->ToString();
-			}
-			else if (player_for_tracks->playState == WMPLib::WMPPlayState::wmppsStopped) {
-				label_track_start->Text = "00:00"; // Сбрасываем метку времени
-			}
-		}
-	} 
+		timerManager->Execute();
+	}
 
 	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e) {
-		currentVolume = trackBar1->Value; // Сохраняем текущее значение громкости
-		player_for_tracks->settings->volume = currentVolume; // Устанавливаем громкость
-		label_volume->Text = currentVolume.ToString() + "%"; // Обновляем текст метки громкости
+		volumeManager->Execute();  // Сохраняем новую громкость
 	}
 
 	private: System::Void progressBar1_MouseClick(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) {
-		if (player_for_tracks->currentMedia != nullptr) {
-			// Получаем ширину прогресс-бара
-			int progressBarWidth = progressBar1->Width;
-			// Вычисляем, на какую позицию в треке хочет перемотать пользователь
-			double newPosition = (double)e->X / progressBarWidth * player_for_tracks->currentMedia->duration;
-			// Устанавливаем позицию воспроизведения
-			player_for_tracks->Ctlcontrols->currentPosition = newPosition;
-			// Обновляем отображение на progressBar1
-			progressBar1->Value = (int)(newPosition / player_for_tracks->currentMedia->duration * progressBar1->Maximum);
-		}
+		progressManager->Execute(e);  // Обновляем позицию и метку времени немедленно
 	}
 
 	private: System::Void track_list_KeyDown(System::Object^ sender, System::Windows::Forms::KeyEventArgs^ e) {
-		if (e->KeyCode == System::Windows::Forms::Keys::Delete) {
-			int selectedIndex = track_list->SelectedIndex;
-			if (selectedIndex != -1) {
-				// Останавливаем воспроизведение, если трек удаляется
-				if (player_for_tracks->URL == paths[selectedIndex]) {
-					player_for_tracks->Ctlcontrols->stop(); // Останавливаем воспроизведение
-					label_message->Text = "Stop"; // Обновляем сообщение
-				}
-				// Удаляем трек из списка
-				track_list->Items->RemoveAt(selectedIndex);
-				paths->RemoveAt(selectedIndex); // Удаляем путь из списка
-				SavePlaylist(); // Обновляем файл плейлиста
-			}
-		}
+		playlistManager->Execute(e);
 	}
 	};
 }

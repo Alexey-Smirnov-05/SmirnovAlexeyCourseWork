@@ -118,12 +118,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Add.cpp" />
+    <ClCompile Include="IndexManager.cpp" />
+    <ClCompile Include="LoadPlaylistManager.cpp" />
+    <ClCompile Include="Next.cpp" />
+    <ClCompile Include="Pause.cpp" />
+    <ClCompile Include="Play.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlaylistManager.cpp" />
+    <ClCompile Include="Previous.cpp" />
+    <ClCompile Include="ProgressManager.cpp" />
+    <ClCompile Include="SavePlaylistManager.cpp" />
+    <ClCompile Include="Stop.cpp" />
+    <ClCompile Include="TimerManager.cpp" />
+    <ClCompile Include="VolumeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Add.h" />
+    <ClInclude Include="IndexManager.h" />
+    <ClInclude Include="LoadPlaylistManager.h" />
+    <ClInclude Include="Next.h" />
+    <ClInclude Include="Pause.h" />
+    <ClInclude Include="Play.h" />
     <ClInclude Include="Player.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="PlaylistManager.h" />
+    <ClInclude Include="Previous.h" />
+    <ClInclude Include="ProgressManager.h" />
+    <ClInclude Include="SavePlaylistManager.h" />
+    <ClInclude Include="Stop.h" />
+    <ClInclude Include="TimerManager.h" />
+    <ClInclude Include="VolumeManager.h" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="WMPLib.1.0">
